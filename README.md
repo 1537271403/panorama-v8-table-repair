@@ -1,10 +1,43 @@
 # Panorama V8 Table Repair
 
+English (default) | [中文教程](#中文教程)
+
 A fully open-source, narrowly scoped repair script for **32-bit CS:GO on Windows**. Source: [`fix_7115142.lua`](fix_7115142.lua). Licensed under the [MIT License](LICENSE).
 
 > Load the fix Lua script first and click **Repair**. After a successful repair, try loading the Lua script that was crashing.
 >
 > This only addresses the specific V8 pointer-table issue described below. It does **not** fix every Lua crash, and does not support CS2 / 64-bit hosts.
+
+## English tutorial
+
+### Requirements
+
+- **32-bit CS:GO on Windows**, not CS2 or a 64-bit host.
+- A LuaJIT script host exposing `ffi`, global `bit`, `ui.create`, `print_raw`, `files.write`, and `files.read`.
+- Permission to use FFI / Windows memory APIs, with a compatible `v8.dll` already loaded in the game process.
+- An existing, readable and writable `nl\scripts` directory for the backup. This path reflects the script's expected layout, not a guarantee of compatibility with every host version.
+
+This script cannot run standalone under an ordinary Lua interpreter.
+
+### How to use
+
+1. Download [`fix_7115142.lua`](https://github.com/1537271403/panorama-v8-table-repair/raw/refs/heads/main/fix_7115142.lua) and save it as a `.lua` file, not HTML or `.txt`.
+2. Place it in your host's Lua script directory (expected layout: `nl\scripts`).
+3. **Load the fix Lua script first**, before the Lua that was crashing. Disable auto-loading of affected scripts and restart the game first if necessary.
+4. Open **Panorama Repair / Verified V8 table repair** in the host UI and click **Repair**.
+5. Check the console for `[PanoramaRepair]`:
+   - `32 pointers corrected and verified. Panorama behavior not yet tested.` means the pointer write passed read-back verification. Actual Panorama behavior still needs checking; now try loading the Lua that was crashing.
+   - `Table already correct; nothing written` means no change was needed. If the target Lua still crashes, investigate another cause.
+   - Any error means you should stop and investigate, not repeatedly load the crashing script.
+6. Changes affect only the current process, not game DLL files on disk. Repeat after a game restart if the same issue returns. Unloading the repair Lua does not undo a successful repair.
+
+### Troubleshooting and safety
+
+A missing `v8.dll`, missing export, unexpected mapping, incompatible architecture, zero/multiple matching tables, or failed backup verification prevents repair. Check the game/host version, required APIs, and backup directory permissions. Do not bypass the checks.
+
+If the output includes `rollback=...; protection=...` or asks you to restart, **restart the game before continuing**. A failed rollback or protection restore is not a successful repair. For other errors or continued crashes, retain the full console message and investigate compatibility with the affected Lua.
+
+Before writing, the script saves and verifies `nl\scripts\PanoramaRepair-original.hex`: a 256-character hexadecimal representation of the original 128-byte table. This is not a game-file backup or an automatic restore tool. Addresses are process-specific; do not apply this backup to another game session. On write/verification failure, the script attempts rollback and page-protection restoration. It intentionally does not roll back a successful repair on unload because other scripts may still use the shared interface.
 
 ## 中文教程
 
@@ -45,37 +78,6 @@ A fully open-source, narrowly scoped repair script for **32-bit CS:GO on Windows
 - 其他错误或修复后仍崩溃：保留完整控制台消息，检查宿主 / 游戏版本与目标 Lua 的兼容性；不要删掉校验条件强行修复。
 
 写入前，脚本把原始错误地址表保存为 `nl\scripts\PanoramaRepair-original.hex`，并回读核对。这是 128 字节地址表的 256 字符十六进制备份，**不是游戏文件备份，也不是自动还原工具**。地址与进程有关，不要把该备份手动写入后续游戏进程。写入或验证失败时脚本会尝试恢复原表与页面保护；成功修复后不会在卸载时回滚，以免破坏其他脚本正在使用的共享接口。
-
-## English tutorial
-
-### Requirements
-
-- **32-bit CS:GO on Windows**, not CS2 or a 64-bit host.
-- A LuaJIT script host exposing `ffi`, global `bit`, `ui.create`, `print_raw`, `files.write`, and `files.read`.
-- Permission to use FFI / Windows memory APIs, with a compatible `v8.dll` already loaded in the game process.
-- An existing, readable and writable `nl\scripts` directory for the backup. This path reflects the script's expected layout, not a guarantee of compatibility with every host version.
-
-This script cannot run standalone under an ordinary Lua interpreter.
-
-### How to use
-
-1. Download [`fix_7115142.lua`](https://github.com/1537271403/panorama-v8-table-repair/raw/refs/heads/main/fix_7115142.lua) and save it as a `.lua` file, not HTML or `.txt`.
-2. Place it in your host's Lua script directory (expected layout: `nl\scripts`).
-3. **Load the fix Lua script first**, before the Lua that was crashing. Disable auto-loading of affected scripts and restart the game first if necessary.
-4. Open **Panorama Repair / Verified V8 table repair** in the host UI and click **Repair**.
-5. Check the console for `[PanoramaRepair]`:
-   - `32 pointers corrected and verified. Panorama behavior not yet tested.` means the pointer write passed read-back verification. Actual Panorama behavior still needs checking; now try loading the Lua that was crashing.
-   - `Table already correct; nothing written` means no change was needed. If the target Lua still crashes, investigate another cause.
-   - Any error means you should stop and investigate, not repeatedly load the crashing script.
-6. Changes affect only the current process, not game DLL files on disk. Repeat after a game restart if the same issue returns. Unloading the repair Lua does not undo a successful repair.
-
-### Troubleshooting and safety
-
-A missing `v8.dll`, missing export, unexpected mapping, incompatible architecture, zero/multiple matching tables, or failed backup verification prevents repair. Check the game/host version, required APIs, and backup directory permissions. Do not bypass the checks.
-
-If the output includes `rollback=...; protection=...` or asks you to restart, **restart the game before continuing**. A failed rollback or protection restore is not a successful repair. For other errors or continued crashes, retain the full console message and investigate compatibility with the affected Lua.
-
-Before writing, the script saves and verifies `nl\scripts\PanoramaRepair-original.hex`: a 256-character hexadecimal representation of the original 128-byte table. This is not a game-file backup or an automatic restore tool. Addresses are process-specific; do not apply this backup to another game session. On write/verification failure, the script attempts rollback and page-protection restoration. It intentionally does not roll back a successful repair on unload because other scripts may still use the shared interface.
 
 ## Technical scope / 技术范围
 
