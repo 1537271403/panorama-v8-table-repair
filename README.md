@@ -31,6 +31,16 @@ This script cannot run standalone under an ordinary Lua interpreter.
    - Any error means you should stop and investigate, not repeatedly load the crashing script.
 6. Changes affect only the current process, not game DLL files on disk. Repeat after a game restart if the same issue returns. Unloading the repair Lua does not undo a successful repair.
 
+### Recommended workflow: a dedicated FixLua config
+
+Use a separate host configuration/profile (not a Steam launch option) so other Lua scripts do not load before the repair.
+
+1. Create and save a new config named **FixLua**. Configure it to load **only `fix_7115142.lua`**, with all other Lua scripts disabled in this config.
+2. Start the game with the **FixLua** config selected. Open the repair panel and click **Repair**; loading this config alone does not perform the repair automatically.
+3. Once the console confirms a successful repair or that the table is already correct, load your preferred config and its Lua scripts **in the same game session**. If repair reports an error, stop instead of switching to the affected config.
+4. **Before closing the game every time, switch back to the FixLua config.** Save/select it as the startup config if your host requires that, so the next launch loads only the repair Lua.
+5. On the next launch, click **Repair** first, then switch to your preferred config again. The memory repair does not persist across game restarts.
+
 ### Troubleshooting and safety
 
 A missing `v8.dll`, missing export, unexpected mapping, incompatible architecture, zero/multiple matching tables, or failed backup verification prevents repair. Check the game/host version, required APIs, and backup directory permissions. Do not bypass the checks.
@@ -67,6 +77,16 @@ Before writing, the script saves and verifies `nl\scripts\PanoramaRepair-origina
    - `Table already correct; nothing written`：找到的地址表已经正确，本次未修改；可以尝试加载目标 Lua，若仍崩溃则需要排查其他原因。
    - 错误消息：停止，不要反复尝试加载崩溃脚本。按下方说明排查。
 6. 修复仅作用于当前进程，不会持久修改游戏 DLL。游戏重启后若同一问题再次出现，需要重新执行；卸载修复 Lua 不会撤销已完成的修复。
+
+### 更好的使用方法：单独建立 FixLua 参数
+
+这里的「参数」指宿主的配置 / config，不是 Steam 启动选项。单独准备一份修复参数，避免其他 Lua 在修复前加载。
+
+1. 新建并保存一份名为 **FixLua** 的参数，设置为**只加载 `fix_7115142.lua`**，在这份参数中关闭其他所有 Lua。
+2. 使用 **FixLua 参数**进入游戏，打开修复面板并点击 **Repair**；仅加载参数不会自动执行修复。
+3. 控制台确认修复成功或地址表已经正确后，**在当前游戏进程内**切换到你想使用的参数，再运行其中的 Lua。如果修复报错，先停止，不要切换到会加载崩溃 Lua 的参数。
+4. **每次关闭游戏之前，先换回 FixLua 参数。** 如果宿主需要另外保存或指定启动参数，也一并设置好，确保下次进入游戏时只加载修复 Lua。
+5. 下次进入游戏后，先点击 **Repair**，再切换到你想使用的参数。修复不会跨游戏进程保留，因此重启游戏后仍需重新操作。
 
 ### 错误处理与备份
 
